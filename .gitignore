@@ -1,0 +1,9 @@
+.metadata/
+*/.project
+*/.cproject
+*/Debug/
+*/Release/
+*/test/
+*~
+*.in
+*.out
