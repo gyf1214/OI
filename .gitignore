@@ -1,6 +1,6 @@
-.metadata/
-*/.project
-*/.cproject
+.metadata/.plugins/
+*.log
+*.lock
 */Debug/
 */Release/
 */test/
