@@ -16,31 +16,38 @@
 #define max(a, b) (a)>(b)?(a):(b)
 #define min(a, b) (a)<(b)?(a):(b)
 #define infi 0x7FFFFFFF
-#define mm 200010
+#define abs(x) (((x) > 0) ? (x) : (-(x)))
+#define mm 400010
 using namespace std;
 
 struct _interval
 {
-	int num, val;
+	int num;
+	long long val;
 	bool st;
 	friend bool operator < (_interval a, _interval b)
 	{
-		return a.val < b.val;
+		return (a.val < b.val) || (a.st < b.st && a.val == b.val);
 	}
 }inter[mm];
 
 struct _line
 {
 	int st, ed;
-	int minl, minr;
+	int nextl, nextr;
+	long long minl, minr;
 }line[mm];
 
 int n;
 int s[mm], lazy[mm], height, size;
 
-int dis(int i, int j)
+long long dis(int i, int j)
 {
-	return inter[j].val - inter[i].val;
+	if (i == 0)
+		return abs(inter[j].val);
+	if (j == 0)
+		return abs(inter[i].val);
+	return abs(inter[j].val - inter[i].val);
 }
 
 void merge(int i)
@@ -66,7 +73,7 @@ void push_down(int i)
 void push_all(int i)
 {
 	for (int k = height; k > 0; --k)
-		push_down(i << k);
+		push_down(i >> k);
 }
 
 void build(int n)
@@ -79,7 +86,7 @@ void build(int n)
 	size = 1 << height;
 }
 
-void add(int i)
+void add(int i, int k)
 {
 	int l = line[i].st + size - 1;
 	int r = line[i].ed + size + 1;
@@ -89,8 +96,8 @@ void add(int i)
 	int rr = r;
 	while (r - l >= 2)
 	{
-		if (l % 2 == 0) update(l + 1, i);
-		if (r % 2 == 1) update(r - 1, i);
+		if (l % 2 == 0) update(l + 1, k);
+		if (r % 2 == 1) update(r - 1, k);
 		l /= 2;
 		r /= 2;
 	}
@@ -106,8 +113,8 @@ void add(int i)
 int query(int i)
 {
 	int ans = 0;
-	int l = line[i].st + size - 1;
-	int r = line[i].ed + size + 1;
+	int l = i + size - 1;
+	int r = i + size + 1;
 	push_all(l);
 	push_all(r);
 	while (r - l >= 2)
@@ -157,32 +164,32 @@ void pre()
 
 int work()
 {
-	add(1);
-	line[1].minl = line[1].minr = 0;
-	rep(i, 2, n)
+	for (int i = n; i >= 1; --i)
 	{
-		line[i].minl = line[i].minr = infi / 3;
-		int k = query(i);
-		if (k == 0)
-			continue;
-		if (line[k].st <= line[i].ed && line[k].st >= line[i].st)
-		{
-			line[i].minl = min(line[i].minl, line[k].minl + dis(line[i].st, line[k].st));
-			line[i].minr = min(line[i].minr, line[k].minl + dis(line[k].st, line[i].ed));
-		}
-		if (line[k].ed <= line[i].ed && line[k].ed >= line[i].st)
-		{
-			line[i].minl = min(line[i].minl, line[k].minr + dis(line[i].st, line[k].ed));
-			line[i].minr = min(line[i].minr, line[k].minr + dis(line[k].ed, line[i].ed));
-		}
+		line[i].nextl = n - query(line[i].st) + 1;
+		line[i].nextr = n - query(line[i].ed) + 1;
+		add(i, n - i + 1);
 	}
-	return min(line[n].minl + abs(inter[line[n].st].val), line[n].minr + abs(inter[line[n].ed].val));
+	rep(i, 2, n + 1)
+	{
+		line[i].minl = line[i].minr = infi;
+	}
+	rep(i, 1, n)
+	{
+		int l = line[i].nextl;
+		int r = line[i].nextr;
+		line[l].minl = min(line[l].minl, line[i].minl + dis(line[i].st, line[l].st));
+		line[l].minr = min(line[l].minr, line[i].minl + dis(line[i].st, line[l].ed));
+		line[r].minl = min(line[r].minl, line[i].minr + dis(line[i].ed, line[r].st));
+		line[r].minr = min(line[r].minr, line[i].minr + dis(line[i].ed, line[r].ed));
+	}
+	return min(line[n + 1].minl, line[n + 1].minr);
 }
 
 int main()
 {
-	//freopen("obstacle.in", "r", stdin);
-	//freopen("obstacle.out", "w", stdout);
+	freopen("obstacle.in", "r", stdin);
+	freopen("obstacle.out", "w", stdout);
 
 	pre();
 	printf("%d\n", work());
