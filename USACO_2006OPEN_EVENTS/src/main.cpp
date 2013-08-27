@@ -19,7 +19,7 @@
 #define mm 40010
 #define lb(x) ((x) & (-(x)))
 using namespace std;
-
+/*
 struct _inter
 {
 	int val, num;
@@ -106,6 +106,44 @@ int main()
 
 	pre();
 	printf("%d\n", work());
+
+	fclose(stdin);
+	fclose(stdout);
+	return 0;
+}
+*/
+
+struct _node
+{
+	int st, ed;
+	friend bool operator <(_node a, _node b)
+	{
+		return a.ed < b.ed;
+	}
+}node[mm];
+
+int n;
+
+int main()
+{
+	freopen("events.in", "r", stdin);
+	freopen("events.out", "w", stdout);
+
+	scanf("%d", &n);
+	rep(i, 1, n)
+	{
+		scanf("%d%d", &node[i].st, &node[i].ed);
+		node[i].ed += node[i].st;
+	}
+	sort(node + 1, node + n + 1);
+	int ans = 0, now = 0;
+	rep(i, 1, n)
+		if (now <= node[i].st)
+		{
+			++ans;
+			now = node[i].ed;
+		}
+	printf("%d\n", ans);
 
 	fclose(stdin);
 	fclose(stdout);
