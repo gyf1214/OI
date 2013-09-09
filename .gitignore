@@ -8,3 +8,4 @@ RemoteSystemsTempFiles/
 *~
 *.in
 *.out
+proxychains.conf
