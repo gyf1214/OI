@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <cmath>
 #include <string>
 #include <iostream>
 #include <algorithm>
@@ -18,6 +19,7 @@
 #define infi 0x7FFFFFFF
 #define nm 5000
 #define mm 26010
+#define mini 1e-9
 using namespace std;
 
 struct _edge
@@ -26,28 +28,32 @@ struct _edge
 	double w;
 }edge[mm];
 
-double dist[nm][nm];
+double dist[nm];
 
 int n, m, s, t;
 
-bool work()
+int cmp(double a, double b)
+{
+	if (abs(a - b + .0) < mini)
+		return 0;
+	if (a > b)
+		return 1;
+	else
+		return -1;
+}
+
+bool work(int s)
 {
 	rep(i, 1, n)
-		rep(j, 1, n)
-			dist[i][j] = 1e99;
-	rep(i, 1, n)
-		dist[i][i] = 1.0;
-	rep(i, 1, m)
-		dist[edge[i].s][edge[i].t] = edge[i].w + .0;
+		dist[i] = 1e99;
+	dist[s] = 1.0;
 	rep(i, 1, n)
 		rep(j, 1, m)
-			dist[edge[j].s][edge[j].t] = min(dist[edge[j].s][i] * dist[i][edge[j].t],
-					dist[edge[j].s][edge[j].t]);
+			dist[edge[j].t] = min(dist[edge[j].s] * edge[j].w, dist[edge[j].t]);
 	bool flag = false;
-	rep(i, 1, n)
-		rep(j, 1, m)
-			if (dist[edge[j].s][i] * dist[i][edge[j].t] < dist[edge[j].s][edge[j].t])
-				flag = true;
+	rep(i, 1, m)
+		if (cmp(dist[edge[i].s] * edge[i].w, dist[edge[i].t]) < 0)
+			flag = true;
 	return flag;
 }
 
@@ -60,11 +66,11 @@ int main()
 	scanf("%d%d%lf%d%d", &n, &m, &k, &s, &t);
 	rep(i, 1, m)
 		scanf("%d%d%lf", &edge[i].s, &edge[i].t, &edge[i].w);
-	bool ret = work();
-	if (ret || dist[s][t] == 0)
+	bool ret = work(s);
+	if (ret || dist[t] == .0)
 		printf("0\n");
 	else
-		printf("%.8lf\n", k * dist[s][t]);
+		printf("%.8lf\n", k * dist[t]);
 
 	fclose(stdin);
 	fclose(stdout);
