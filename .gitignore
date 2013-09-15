@@ -6,6 +6,4 @@ RemoteSystemsTempFiles/
 */Release/
 */test/
 *~
-*.in
-*.out
 proxychains.conf
