@@ -13,8 +13,8 @@ using namespace std;
 
 int main()
 {
-	freopen("disease.in", "r", stdin);
-	freopen("disease.out", "w", stdout);
+//	freopen("disease.in", "r", stdin);
+//	freopen("disease.out", "w", stdout);
 
 	int n;
 	priority_queue<long long> pq;
