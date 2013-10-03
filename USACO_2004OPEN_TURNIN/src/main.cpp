@@ -88,7 +88,7 @@ int work()
 		{
 			pro(true, true, i, j, j + 1);
 			pro(false, true, i, j, n - i + j + 1);
-			pro(true, false, i, j, i + j - n);
+			pro(true, false, i, j, i + j - n - 1);
 			pro(false, false, i, j, j - 1);
 		}
 	}
