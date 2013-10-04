@@ -70,7 +70,7 @@ void pre()
 		scanf("%d%d", &node[i].x, &node[i].t);
 	node[0].t = 0;
 	node[0].x = 0;
-	sort(node, node + n + 1);
+	sort(node + 1, node + n + 1);
 }
 
 int work()
