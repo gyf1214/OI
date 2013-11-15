@@ -51,6 +51,8 @@ int work()
 			ans++;
 			pq2.push(x.c-x.p);
 		}
+		if (pq1.empty())
+			return ans;
 		if (!pq2.empty())
 		{
 			int x = -pq2.top();
@@ -65,8 +67,8 @@ int work()
 
 int main()
 {
-	//freopen("coupons.in", "r", stdin);
-	//freopen("coupons.out", "w", stdout);
+	freopen("coupons.in", "r", stdin);
+	freopen("coupons.out", "w", stdout);
 
 	scanf("%d%d%lld", &n, &k, &m);
 	rep(i, 1, n)
