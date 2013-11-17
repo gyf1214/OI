@@ -74,15 +74,32 @@ void dfs(int u)
 		dfs(b[u]);
 	f[u] = 1;
 	g[u] = 0;
+	bool flag = false;
 	if (s[u] != 0)
 		h[u] = 0;
 	else
+	{
 		h[u] = infi;
+		flag = true;
+	}
 	for (int v = s[u]; v; v = b[v])
 	{
 		f[u] += min(f[v], g[v]);
 		g[u] += min(f[v], h[v]);
-		h[u] += f[v];
+		if (f[v] > h[v])
+			h[u] += h[v];
+		else
+		{
+			h[u] += f[v];
+			flag = true;
+		}
+	}
+	if (!flag)
+	{
+		int best = infi;
+		for (int v = s[u]; v; v = b[v])
+			best = min(best, f[v] - h[v]);
+		h[u] += best;
 	}
 }
 
