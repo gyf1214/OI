@@ -16,7 +16,7 @@
 #define max(a, b) ((a)>(b)?(a):(b))
 #define min(a, b) ((a)<(b)?(a):(b))
 #define infi 0x7FFFFFFF
-#define mm 50010
+#define mm 200010
 using namespace std;
 
 struct _node
@@ -66,7 +66,7 @@ inline void merge(int i)
 void push_all(int i)
 {
 	for (int k = height; k > 0; k -= 1)
-		push(i << k);
+		push(i >> k);
 }
 
 void fill(int l, int r, int t, bool d)
@@ -84,7 +84,7 @@ void fill(int l, int r, int t, bool d)
 		l /= 2;
 		r /= 2;
 	}
-	while (ll > 0 && rr > 0)
+	while (ll > 1 && rr > 1)
 	{
 		ll /= 2;
 		rr /= 2;
@@ -108,26 +108,41 @@ void build(int n)
 		merge(i);
 }
 
-int query(int l)
+int query(int k)
 {
+	if (node[1].s < k)
+		return 0;
 	int now = 1;
+	int prefix = 0;
 	int suffix = 0;
-	int k = 0;
+	int lmax = 0;
+	int rmax = 0;
 	while (now < size)
 	{
-		int m = now * 2 + 1;
-		int t = max(k, node[m].s);
-		if (max(t, node[m].right + suffix) >= l)
-			now = m;
-		else {
-			now = m - 1;
-			k = t;
-			if (node[m].left == node[m].length)
-				suffix += node[m].length;
-			else
-				suffix = node[m].left;
+		int l = now * 2;
+		int r = now * 2 + 1;
+		push(now);
+		int lmax1 = max(node[l].s, lmax);
+		int rmax1 = max(node[r].s, rmax);
+		int prefix1 = node[l].right;
+		if (node[l].right == node[l].length)
+			prefix1 += prefix;
+		int suffix1 = node[r].left;
+		if (node[r].left == node[r].length)
+			suffix1 += suffix;
+		if (lmax1 >= k || prefix1 + suffix1 >= k)
+		{
+			suffix = suffix1;
+			rmax = rmax1;
+			now = l;
+		} else {
+			prefix = prefix1;
+			lmax = lmax1;
+			now = r;
 		}
 	}
+	if (node[now].right == 0)
+		++now;
 	return now - size;
 }
 
@@ -164,8 +179,8 @@ void pre()
 
 int main()
 {
-	//freopen("hotel.in", "r", stdin);
-	//freopen("hotel.out", "w", stdout);
+	freopen("hotel.in", "r", stdin);
+	freopen("hotel.out", "w", stdout);
 
 	pre();
 	work();
