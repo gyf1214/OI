@@ -1,0 +1,115 @@
+/*
+ * main.cpp
+ *
+ *  Created on: Feb 10, 2014
+ *      Author: gyf
+ */
+
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <queue>
+#define rep(i, a, b) for (int i = (a); i <= (b); ++i)
+#define clr(i, a) memset(i, (a), sizeof(i))
+#define max(a, b) ((a)>(b)?(a):(b))
+#define min(a, b) ((a)<(b)?(a):(b))
+#define infi 0x7FFFFFFF
+#define nm 260
+#define mm 50010
+using namespace std;
+
+typedef pair<long long, int> pii;
+
+struct _edge
+{
+	int u, v;
+	long long w;
+	int next;
+}edge[mm];
+int ne, n;
+int head[nm];
+long long dis[nm];
+
+
+inline void ins(int u, int v, int w)
+{
+	++ne;
+	edge[ne].u = u;
+	edge[ne].v = v;
+	edge[ne].w = w;
+	edge[ne].next = head[u];
+	head[u] = ne;
+}
+
+void pre()
+{
+	int m;
+	scanf("%d%d", &n, &m);
+	rep(i, 1, m)
+	{
+		int x, y, z;
+		scanf("%d%d%d", &x, &y, &z);
+		ins(x, y, z);
+		ins(y, x, z);
+	}
+}
+
+long long dijistra(int u, int v)
+{
+	rep(i, 2, n)
+		dis[i] = infi / 3;
+	dis[1] = 0;
+	priority_queue<pii, vector<pii>, greater<pii> > q;
+	for (int e = head[1]; e; e = edge[e].next)
+	q.push(make_pair(dis[1], 1));
+	while (1)
+	{
+		if (q.empty())
+			break;
+		pii t = q.top();
+		q.pop();
+		if (t.first != dis[t.second])
+			continue;
+		for (int e = head[t.second]; e; e = edge[e].next)
+		{
+			long long w = edge[e].w;
+			if ((edge[e].u == u && edge[e].v == v)
+				||(edge[e].u == v && edge[e].v == u))
+				w *= 2;
+			if (dis[edge[e].u] < dis[edge[e].v] - w)
+			{
+				dis[edge[e].v] = dis[edge[e].u] + w;
+				q.push(make_pair(dis[edge[e].v], edge[e].v));
+			}
+		}
+	}
+	return dis[n];
+}
+
+long long work()
+{
+	long long ans = 0;
+	rep(i, 1, ne / 2)
+	{
+		int u = edge[2 * i].u;
+		int v = edge[2 * i].v;
+		ans = max(ans, dijistra(u, v));
+	}
+	return ans;
+}
+
+int main()
+{
+	freopen("rblock.in", "r", stdin);
+	freopen("rblock.out", "w", stdout);
+
+	pre();
+	printf("%lld\n", work() - dijistra(-1, -1));
+
+	fclose(stdin);
+	fclose(stdout);
+	return 0;
+}

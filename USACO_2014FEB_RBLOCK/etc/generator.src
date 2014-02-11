@@ -1,0 +1,27 @@
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#define nm 250
+#define mm 2000
+#define mmax 10000000
+
+bool vis[nm + 10][nm + 10];
+
+int main(int argc, char** argv)
+{
+	printf("%d %d\n", nm, mm);
+	srand(argv[1][0]);
+	memset(vis, 0, sizeof(vis));
+	for (int i = 0; i < mm; ++i)
+	{
+		int u = rand() % nm + 1;
+		int v = rand() % nm + 1;
+		if (u == v || vis[u][v] || vis[v][u])
+			continue;
+		printf("%d %d %d\n", u, v, rand() % mmax);
+		vis[u][v] = true;
+	}
+	fclose(stdout);
+	return 0;
+}
+
