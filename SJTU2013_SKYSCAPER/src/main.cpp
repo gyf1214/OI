@@ -21,28 +21,5 @@
 #define mm 1000010
 using namespace std;
 
-bitset<mm> bs;
-int n;
 
-int main()
-{
-	freopen("xor.in", "r", stdin);
 
-	scanf("%d", &n);
-	bs ^= 1;
-	rep(i, 1, n)
-	{
-		int x;
-		scanf("%d", &x);
-		bs = bs ^ (bs << x);
-	}
-	int ans = 0;
-	rep(i, 1, mm - 1)
-		if (bs.test(i))
-			ans = ans ^ i;
-	printf("%d\n", ans);
-
-	fclose(stdin);
-	fclose(stdout);
-	return 0;
-}
