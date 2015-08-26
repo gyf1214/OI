@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo chmod 777 ./$1
+chmod +x ./$1
 echo $1
 echo
 for ((i = 1; i <= $2; i++))

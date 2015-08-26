@@ -1,4 +1,6 @@
-g++ -x c++ -o generator generator.src
+#!/bin/bash
+
+g++ -x c++ -o generator generator.cpp
 for ((i=1;i<=9;i++)) do
 ./generator $i > $1$i.in;
 done

@@ -1,4 +1,6 @@
-g++ -x c++ -o checker checker.src
+#!/bin/bash
+
+g++ -x c++ -o checker checker.cpp
 for ((i=1;i<=9;i++)) do
 cp $1$i.in $1.in
 ./checker
