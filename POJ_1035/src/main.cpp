@@ -1,4 +1,4 @@
-//Created At: Thu Oct 15 23:13:51 CST 2015
+//Created At: Fri Oct 16 07:09:57 CST 2015
 //orz zyx
 //ntr czr
 //Author: gyf
@@ -12,93 +12,59 @@
 #define rep(i, a, b) for (int i = (a); i <= (b); ++i)
 #define clr(i, a) memset(i, (a), sizeof(i))
 #define infi 0x7FFFFFFF
-#define nm 26
-#define mm 150010
+#define mm 11000
 using namespace std;
 
-struct Node {
-	char ch;
-	bool ed;
-	Node *fa, *next[nm];
+char dic[mm][20];
+int n;
 
-	Node* setc(Node *p, int ch) {
-		p -> fa = this;
-		p -> ch = ch + 'a';
-		next[ch] = p;
-		return p;
-	}
-
-	void print() {
-		if (fa) fa -> print();
-		if (fa) putchar(ch);
-	}
-}node[mm], *tail, *root;
-
-void ins(char *str) {
-	Node *p;
-	for (p = root; *str; str++) {
-		char ch = *str - 'a';
-		if (p -> next[ch]) {
-			p = p -> next[ch];
-		} else {
-			p = p -> setc(tail++, ch);
+bool match(char *a, char *b, bool c) {
+	int l1 = strlen(a), l2 = strlen(b);
+	if (l1 > l2) swap(a, b);
+	if (abs(l2 - l1) > 1) return false;
+	if (l1 == l2) {
+		for (; *a; ++a, ++b) {
+			if (*a != *b) {
+				if (!c) return false;
+				c = false;
+			}
+		}
+	} else {
+		for (; *b; ++a, ++b) {
+			if (*a != *b) {
+				if (!c) return false;
+				--a;
+				c = false;
+			}
 		}
 	}
-	p -> ed = true;
+	return true;
 }
 
 void pre() {
-	tail = node;
-	root = tail++;
-	char str[20];
-	for (scanf("%s", str); *str != '#'; scanf("%s", str)) {
-		ins(str);
-	}
-}
-
-bool match(Node *p, char *str, bool c, bool pr) {
-	if (p == NULL) return false;
-	if (! *str) {
-		if (p -> ed) {
-			if (pr) {
-				putchar(' ');
-				p -> print();
-			}
-			return true;
-		} else if (c) {
-			bool ans = false;
-			rep(i, 0, 25) {
-				bool x = match(p -> next[i], str, false, pr);
-				ans = ans || x;
-			}
-			return ans;
-		} else return false;
-	}
-	bool ans = match(p -> next[*str - 'a'], str + 1, c, pr);
-	if (c) {
-		c = false;
-		bool x = match(p, str + 1, c, pr);
-		ans = ans || x;
-		rep(i, 0, 25) {
-			x = match(p -> next[i], str, c, pr);
-			ans = ans || x;
-			x = match(p -> next[i], str + 1, c, pr);
-			ans = ans || x;
-		}
-	}
-	return ans;
+	for (scanf("%s", dic[n++]); dic[n - 1][0] != '#'; scanf("%s", dic[n++]));
+	--n;
 }
 
 void work() {
-	char str[20], ori[20];
-	for (scanf("%s", str); *str != '#'; scanf("%s", str)) {
-		strcpy(ori, str);
-		if (match(root, str, false, false)) {
-			printf("%s is correct\n", ori);
-		} else {
-			printf("%s:", ori);
-			match(root, str, true, true);
-			putchar('\n');
+	char str[20];
+	for (scanf("%s", str); str[0] != '#'; scanf("%s", str)) {
+		bool flag = false;
+		rep(i, 0, n - 1) {
+			if (match(str, dic[i], false)) {
+				printf("%s is correct\n", str);
+				flag = true;
+				break;
+			}
+		}
+		if (!flag) {
+			printf("%s:", str);
+			rep(i, 0, n - 1) {
+				if (match(str, dic[i], true)) {
+					printf(" %s", dic[i]);
+				}
+			}
+			printf("\n");
 		}
 	}
 }
