@@ -62,6 +62,7 @@ public:
     virtual void beforeMarch(void);
     virtual void march(void);
     virtual void afterMarch(void);
+    virtual void takeLife(void);
     virtual void shot(void);
     virtual void beforeBattle(void);
     virtual void attack(bool);
@@ -111,53 +112,65 @@ public:
 
 class IFactory {
 public:
-    virtual BaseUnit *create(Game *, int, int) = 0;
+    virtual BaseUnit *create(Game *, int) = 0;
 };
 
 template <class T>
 class Factory : public IFactory {
 public:
-    BaseUnit *create(Game *, int, int);
+    BaseUnit *create(Game *, int);
 };
 
 class City {
+    Game *game;
+    BaseUnit *lastUnit[2];
+    BaseUnit *unit[2];
     int life, flag, lastWinner;
 public:
-    City(void);
-    BaseUnit *unit[2];
-    void battle(void);
+    City(Game *);
+    ~City(void);
     int getLife(void);
-    int getAttacker(void);
-    bool win(int);
+    BaseUnit *getUnit(int);
+    BaseUnit *getAttacker(void);
     City *next(int);
+
+    void clear(void);
+    void march(void);
+    void battle(void);
+    bool win(int);
 };
 
 class HQ {
+    Game *game;
     int life, currentUnit;
     int count, side;
 public:
-    HQ(int);
+    HQ(Game *, int, int);
+    ~HQ(void);
     int reward(void);
     void addLife(int);
     int getLife(void);
-    int build(void);
     int getCount(void);
+    void build(void);
 };
 
 class Game {
-    int time, cityCount;
-    int arrowAtk, lionDec, endTime;
+    int hour, minute;
+    int lifeHQ, cityCount, arrowAtk, lionDec, endTime;
     int life[Types], atk[Types];
     City *cities;
-    HQ hq[2];
+    HQ *hqs;
 public:
     Game(void);
+    ~Game(void);
     HQ *getHQ(int);
     City *getCity(int);
     City *getHQCity(int);
     int getCityId(City *);
     int getLife(int);
     int getAtk(int);
+    int getArrowAtk(void);
+    int getLionDec(void);
 
     void initialize(void);
     bool tick(void);
@@ -240,7 +253,11 @@ void BaseUnit::beforeMarch() {
 }
 
 void BaseUnit::march() {
-    if (!inEnemyHQ()) city = city -> next(side);
+    if (inEnemyHQ()) return;
+    city = city -> next(side);
+}
+
+void BaseUnit::afterMarch() {
     game -> printTime();
     printName();
     if (!inEnemyHQ()) {
@@ -251,7 +268,7 @@ void BaseUnit::march() {
     printf(" with %d elements and force %d\n", life, atk);
 }
 
-void BaseUnit::afterMarch() {
+void BaseUnit::takeLife() {
     if (enemy() -> dead()) {
         int x = city -> getLife();
         getHQ() -> addLife(x);
@@ -263,9 +280,9 @@ void BaseUnit::afterMarch() {
 
 void BaseUnit::shot() {
     BaseUnit *enemy = city -> next(side) -> unit[side ^ 1];
-    if (weapon[0] > 0 && enemy) {
+    if (weapon[0] > 0 && enemy()) {
         --weapon[0];
-        enemy -> hurt(this, game -> arrowAtk, false);
+        enemy -> hurt(this, game -> getArrowAtk(), false);
         game -> printTime();
         printName();
         printf(" shot");
@@ -289,7 +306,7 @@ void BaseUnit::beforeBattle() {
 }
 
 void BaseUnit::attack(bool b) {
-    if (enemy() -> dead()) return;
+    if (dead() || enemy() -> dead()) return;
 
     game -> printTime();
     printName();
@@ -316,7 +333,7 @@ void BaseUnit::hurt(BaseUnit *enemy, int a, bool b) {
 
 void BaseUnit::afterBattle() {
     if (!dead()) {
-        BaseUnit::afterMarch();
+        BaseUnit::takeLife();
         if (enemy() -> dead() && city -> win(side)) {
             game -> printTime();
             printf("%s flag raised in city %d\n", team(), getCityId());
@@ -398,7 +415,7 @@ void Lion::afterBorn() {
 
 void Lion::beforeMarch() {
     BaseUnit::beforeMarch();
-    if (loyalty <= 0) {
+    if (!inEnemyHQ() && loyalty <= 0) {
         life = -1;
         game -> printTime();
         printName();
@@ -413,6 +430,8 @@ void Lion::beforeBattle() {
 
 void Lion::afterBattle() {
     if (enemy() -> killing) enemy() -> life += lastLife;
+    if (!enemy() -> dead()) loyalty -= game -> getLionDec();
+    BaseUnit::afterBattle();
 }
 
 Wolf::Wolf(Game *game, int side): BaseUnit(game, 4, side) {}
@@ -423,6 +442,230 @@ void Wolf::afterBattle() {
             weapon[i] = weapon[i] ? weapon[i] : enemy() -> weapon[i];
         }
     }
+    BaseUnit::afterBattle();
+}
+
+template <class T>
+BaseUnit *Factory::create(Game *game, int side) {
+    return new T(game, side);
+}
+
+City::City(Game *game)
+:game(game), life(0), flag(-1), lastWinner(-1) {
+    unit[0] = unit[1] = NULL;
+}
+
+City::~City() {
+    for (int i = 0; i < 2; ++i) {
+        if (unit[i]) delete unit[i];
+    }
+}
+
+int City::getLife() {
+    int ret = life;
+    life = 0;
+    return ret;
+}
+
+BaseUnit *City::getUnit(int side) {
+    return unit[side];
+}
+
+BaseUnit *City::getAttacker() {
+    int side = (flag >= 0 ? flag : (game -> getCityId(this) + 1) % 2);
+    return unit[side];
+}
+
+City *City::next(int side) {
+    return this + (side ^ 1) * 2 - 1;
+}
+
+void City::clear() {
+    for (int i = 0; i < 2; ++i) {
+        if (unit[i] -> dead()) {
+            delete unit[i];
+            unit[i] = NULL;
+        }
+        lastUnit[i] = unit[i];
+    }
+}
+
+void City::march() {
+    for (int i = 0; i < 2; ++i) {
+        lastUnit[i] -> march();
+        lastUnit[i] -> city -> unit[i] = lastUnit[i];
+    }
+    life += 10;
+}
+
+void City::battle() {
+    if (unit[0] -> dead() && unit[1] -> dead()) return;
+
+    unit[0] -> beforeBattle();
+    unit[1] -> beforeBattle();
+    unit[getAttacker()] -> attack(true);
+    unit[0] -> afterBattle();
+    unit[1] -> afterBattle();
+
+    if (!unit[0] -> dead() && !unit[1] -> dead()) lastWinner = -1;
+}
+
+bool City::win(int side) {
+    int x = lastWinner;
+    lastWinner = side;
+    bool ret = x == side && side != flag;
+    if (ret) flag = side;
+    return ret;
+}
+
+HQ::HQ(Game *game, int life, int side)
+: game(game), life(life), side(side), count(0), currentUnit(0) {}
+
+HQ::~HQ() {}
+
+int HQ::reward() {
+    if (life < 8) return 0;
+    life -= 8;
+    return 8;
+}
+
+void HQ::addLife(int x) {
+    life += x;
+}
+
+void HQ::getLife() {
+    return life;
+}
+
+int HQ::getCount() {
+    return count;
+}
+
+void HQ::build() {
+    static IFactory *factory[] = {
+        new Factory<Dragon>(), new Factory<Ninja>(),
+        new Factory<Iceman>(), new Factory<Lion>(),
+        new Factory<Wolf>()
+    }
+
+    int type = List[side][currentUnit];
+    if (game -> getLife(type) >= life) {
+        life -= game -> getLife(type);
+        currentUnit = (currentUnit + 1) % Types;
+        ++count;
+        BaseUnit *unit = factory[type] -> create(game, side);
+        unit -> afterBorn();
+    }
+}
+
+Game::Game() : hour(0), cities(NULL), hqs(NULL) {}
+
+Game::~Game() {
+    if (cities) {
+        for (int i = 0; i < cityCount; ++i) (cities + i) -> ~City();
+        free(cities);
+        cities = NULL
+    }
+    if (hqs) {
+        for (int i = 0; i < 2; ++i) (hqs + i) -> ~HQ();
+        free(hqs);
+        cities = NULL;
+    }
+}
+
+HQ *Game::getHQ(int side) {
+    return hqs + side;
+}
+
+City *Game::getCity(int id) {
+    return cities + id;
+}
+
+City *Game::getHQCity(int side) {
+    int id = side ? cityCount + 1 : 0;
+    return cities + id;
+}
+
+int Game::getCityId(City *city) {
+    return city - cities;
+}
+
+int Game::getLife(int type) {
+    return life[type];
+}
+
+int Game::getAtk(int type) {
+    return atk[type];
+}
+
+int Game::getArrowAtk() {
+    return arrowAtk;
+}
+
+int Game::getLionDec() {
+    return lionDec;
+}
+
+void Game::initialize() {
+    scanf("%d%d%d%d%d", &lifeHQ, &cityCount, &arrowAtk, &lionDec, &endTime);
+    for (int i = 0; i < types; ++i) scanf("%d", &life[i]);
+    for (int i = 0; i < types; ++i) scanf("%d", &atk[i]);
+    hqs = (HQ *)malloc(2 * sizeof(HQ));
+    for (int i = 0; i < 2; ++i) new(hqs + i) HQ(this, lifeHQ, i);
+    cities = (City *)malloc((2 + cityCount) * sizeof(City));
+    for (int i = 0; i < cityCount + 2; ++i) new(cities + i) City(this);
+}
+
+#define repC(i) rep(i, 0, cityCount + 1)
+#define vC(i) (cities + i)
+#define vU(j) if (cities[i].getUnit(j)) cities[i].getUnit(j)
+#define repU(i, j) repC(i) rep(j, 0, 1)
+#define allCity repC(i) vC(i)
+#define allUnit repU(i, j) vU(i, j)
+
+void Game::tick() {
+    minute = 0;
+    hq[0].build();
+    hq[1].build();
+
+    minute = 5;
+    allUnit -> beforeMarch();
+    allCity -> clear();
+
+    minute = 10;
+    allCity -> march();
+
+    minute = 30;
+    allUnit -> takeLife();
+
+    minute = 35;
+    allUnit -> shot();
+
+    minute = 38;
+    allUnit -> beforeBattle();
+
+    minute = 40;
+    allCity -> battle();
+
+    for (int i = cityCount + 1; i >= 0; --i) {
+        vU(i, 0) -> reward();
+    }
+
+    repC(i) vU(i, 1) -> reward();
+
+    minute = 50;
+    hq[0].report();
+    hq[1].report();
+
+    minute = 55;
+    repC(i) vU(i, 0) -> report();
+    repC(i) vU(i, 1) -> report();
+
+    ++hour;
+}
+
+void Game::printTime() {
+    printf("%03d:%02d ", hour, minute);
 }
 
 int main() {
