@@ -10,7 +10,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-#define rep(i, a, b) for (int i = (a); i <= (b); ++i)
+#define rep(i, a, b) for (int _a = (a), _b = (b), i = _a; i <= _b; ++i)
 #define clr(i, a) memset(i, (a), sizeof(i))
 #define infi 0x7FFFFFFF
 #define mm 200010
@@ -85,16 +85,14 @@ void solve(int l, int r) {
     int m = (l + r) / 2;
     int base = top;
     rep(i, m + 1, r) {
-        int t = g[i].size() - 1;
-        rep(j, 0, t) {
+        rep(j, 0, g[i].size() - 1) {
             ans += merge(node + g[i][j].first, node + g[i][j].second);
         }
     }
     solve(l, m);
     ans -= rollback(base);
     rep(i, l, m) {
-        int t = g[i].size() - 1;
-        rep(j, 0, t) {
+        rep(j, 0, g[i].size() - 1) {
             ans += merge(node + g[i][j].first, node + g[i][j].second);
         }
     }
