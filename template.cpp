@@ -16,7 +16,7 @@
 using namespace std;
 
 int main() {
-	fclose(stdin);
-	fclose(stdout);
-	return 0;
+    fclose(stdin);
+    fclose(stdout);
+    return 0;
 }
