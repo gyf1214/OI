@@ -28,22 +28,22 @@ bool cmp(int *y, int a, int b, int k) {
 
 void makeSA() {
     int *x = t1, *y = t2;
-    int m = 128;
+    int m = 256;
     clr(cnt, 0);
     rep(i, 0, n - 1) ++cnt[x[i] = s[i]];
     rep(i, 1, m - 1) cnt[i] += cnt[i - 1];
     for (int i = n - 1; i >= 0; --i) sa[--cnt[x[i]]] = i;
     for (int k = 1; k < n; k *= 2) {
         int p = 0;
-        rep(i, n - k, n - 1) y[p++] = i;
+        for (int i = n - k; i < n; ++i) y[p++] = i;
         rep(i, 0, n - 1) if (sa[i] >= k) {
             y[p++] = sa[i] - k;
         }
 
         clr(cnt, 0);
         rep(i, 0, n - 1) ++cnt[x[y[i]]];
-        rep(i, 0, m - 1) cnt[i] += cnt[i - 1];
-        rep(i, 0, n - 1) sa[--cnt[x[y[i]]]] = y[i];
+        rep(i, 1, m - 1) cnt[i] += cnt[i - 1];
+        for (int i = n - 1; i >= 0; --i) sa[--cnt[x[y[i]]]] = y[i];
 
         swap(x, y);
         m = 1;
@@ -58,12 +58,13 @@ void makeSA() {
 
 void getHeight() {
     rep(i, 0, n - 1) rk[sa[i]] = i;
+    height[0] = 0;
     int k = 0;
     rep(i, 0, n - 1) {
         if (!rk[i]) continue;
-        if (k) --k;
         int j = sa[rk[i] - 1];
-        while (s[i + k] == s[j + k]) ++k;
+        if (k) --k;
+        while (s[j + k] == s[i + k]) ++k;
         height[rk[i]] = k;
     }
 }
