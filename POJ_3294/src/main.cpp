@@ -114,6 +114,7 @@ bool pre() {
 }
 
 void printAns(int k) {
+    solve(k);
     if (!k) {
         printf("?\n\n");
         return;
