@@ -16,7 +16,8 @@
 #define mm 40
 using namespace std;
 
-bool map[mm][mm], vis[mm][mm], match[mm][mm];
+bool map[mm][mm], vis[mm][mm];
+int match[mm][mm];
 int m, n;
 int dx[] = {0, -1, 0, 1};
 int dy[] = {-1, 0, 1, 0};
@@ -29,9 +30,9 @@ bool find(int x, int y) {
             vis[nx][ny] = true;
             bool flag = true;
             int t = match[nx][ny] - 1;
-            if (t > 0) {
-                int sx = nx + dx[t];
-                int sy = ny + dy[y];
+            if (t >= 0) {
+                int sx = nx - dx[t];
+                int sy = ny - dy[t];
                 flag = find(sx, sy);
             }
             if (flag) {
@@ -46,6 +47,7 @@ bool find(int x, int y) {
 bool work() {
     int k, x, y;
     clr(map, 0);
+    clr(match, 0);
     scanf("%d%d%d", &n, &m, &k);
     rep(i, 1, n) rep(j, 1, m) map[i][j] = true;
     rep(i, 1, k) {
